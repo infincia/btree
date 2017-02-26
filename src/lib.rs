@@ -14,7 +14,7 @@ use disk_btree::OnDiskBTree;
 use rustc_serialize::{Encodable, Decodable};
 
 use std::error::Error;
-use itertools::merge;
+use itertools::Itertools;
 
 const MAX_MEMORY_ITEMS: usize = 1000;
 
@@ -100,7 +100,7 @@ impl <K: KeyType, V: ValueType> BTree<K, V> {
         // get an iterator to the on-disk items
         let disk_iter = self.tree_file.into_iter();
 
-        for kv in merge(mem_iter, disk_iter) {
+        for kv in mem_iter.merge(disk_iter) {
             try!(new_tree_file.insert_record(&kv));
         }
 
