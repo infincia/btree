@@ -4,6 +4,8 @@ use ::{KeyType, ValueType};
 
 use std::error::Error;
 // use std::iter::Filter;
+// use bincode::{deserialize};
+
 
 /*
 const NUM_CHILDREN: usize = 32;
@@ -11,13 +13,13 @@ const FILE_HEADER: &'static str = "B+Tree\0";
 const CURRENT_VERSION: u8 = 0x01;
 
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq)]
 enum Payload<K: KeyType, V: ValueType> {
         Value(V),
         Children([(K,u64); NUM_CHILDREN]),
     }
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq)]
 struct Node<K: KeyType, V: ValueType> {
     key: K,
     parent: u64,
@@ -154,7 +156,7 @@ impl <'a, K: KeyType, V: ValueType> Iterator for OnDiskBTreeIterator<'a,K,V> {
             try!(tree_file.seek(SeekFrom::End((node_size as isize * -1) as i64)));
             try!(tree_file.read_exact(&mut buff));
 
-            let root_node: Node<K,V> = try!(decode(&buff[..]));
+            let root_node: Node<K,V> = try!(deserialize(&buff[..]));
 
             Ok(BTree{tree_file_path: tree_file_path,
                      tree_file: tree_file,

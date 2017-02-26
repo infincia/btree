@@ -1,5 +1,5 @@
 extern crate bincode;
-extern crate rustc_serialize;
+extern crate serde;
 extern crate rand;
 extern crate itertools;
 
@@ -11,21 +11,24 @@ use wal_file::{KeyValuePair, RecordFile};
 use multi_map::MultiMap;
 use disk_btree::OnDiskBTree;
 
-use rustc_serialize::{Encodable, Decodable};
+#[macro_use]
+extern crate serde_derive;
 
 use std::error::Error;
 use itertools::Itertools;
 
+use serde::{Serialize, Deserialize};
+
 const MAX_MEMORY_ITEMS: usize = 1000;
 
 // specify the types for the keys & values
-pub trait KeyType: Ord + Encodable + Decodable + Clone {}
-pub trait ValueType: Ord + Encodable + Decodable + Clone  {}
+pub trait KeyType: Ord + Serialize + Deserialize + Clone {}
+pub trait ValueType: Ord + Serialize + Deserialize + Clone  {}
 
 // provide generic implementations
 
-impl<T> KeyType for T where T: Ord + Encodable + Decodable + Clone {}
-impl<T> ValueType for T where T: Ord + Encodable + Decodable + Clone {}
+impl<T> KeyType for T where T: Ord + Serialize + Deserialize + Clone {}
+impl<T> ValueType for T where T: Ord + Serialize + Deserialize + Clone {}
 
 /// This struct holds all the pieces of the BTree mechanism
 pub struct BTree<K: KeyType, V: ValueType> {

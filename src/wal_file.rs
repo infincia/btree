@@ -1,8 +1,7 @@
 extern crate bincode;
-extern crate rustc_serialize;
 
 use bincode::SizeLimit;
-use bincode::rustc_serialize::{encode, decode};
+use bincode::{serialize, deserialize};
 
 use ::{KeyType, ValueType};
 
@@ -13,7 +12,7 @@ use std::io::Error as IOError;
 use std::marker::PhantomData;
 use std::cmp::Ordering;
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq)]
 pub struct KeyValuePair<K: KeyType, V: ValueType> {
     pub key: K,
     pub value: V,
@@ -69,9 +68,9 @@ impl <K: KeyType, V: ValueType> RecordFile<K,V> {
     }
 
     pub fn insert_record(&mut self, kv: &KeyValuePair<K,V>) -> Result<(), Box<Error>> {
-        // encode the record
+        // serialize the record
         let record_size = self.key_size + self.value_size;
-        let mut buff = try!(encode(&kv, SizeLimit::Bounded(record_size as u64)));
+        let mut buff = try!(serialize(&kv, SizeLimit::Bounded(record_size as u64)));
 
         // padd it out to the max size
         if buff.len() > self.key_size + self.value_size {
@@ -110,10 +109,10 @@ impl <'a, K: KeyType, V: ValueType> Iterator for RecordFileIterator<'a,K,V> {
 
         println!("Creating buffer: {}", total_size);
 
-        // attempt to read a buffer's worth and decode
+        // attempt to read a buffer's worth and deserialize
         match self.wal_file.fd.read_exact(&mut buff) {
             Ok(_) => {
-                match decode(&buff) {
+                match deserialize(&buff) {
                     Ok(record) => Some(record),
                     Err(_) => None
                 }
